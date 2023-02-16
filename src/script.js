@@ -1,10 +1,8 @@
-import { get } from 'http';
+
 import { REACT_APP_STAKING_CONTRACT_ADDRESS, REACT_APP_TOKEN_CONTRACT_ADDRESS, REACT_APP_PROVIDER, REACT_APP_WICRYPT_DEVICE_CONTRACT_ADDRESS } from './helpers/config.json'
 import { Request } from './helpers/https';
 const Web3 = require('web3');
 const { BigNumber } = require("@ethersproject/bignumber");
-const { abi: swapRouterAbi } = require('./helpers/abi/SwapRouter.json');
-const { abi: erc20Abi } = require('./helpers/abi/Splinters.json');
 const dotenv = require('dotenv')
 dotenv.config()
 
@@ -90,36 +88,18 @@ export async function swap(destinationToken, sourceToken, sourceAmount, address)
     if (result.data) {
         let swapData = result.data;
         let tradeData = swapData[0].trade.data;
-        // console.log({ tradeData }); return;
 
         let client = await loadProvider()
-        console.log({client})
-
-        let { aggregator } = swapData[0];
-        const swapRouterContract = new client.eth.Contract(swapRouterAbi, SWAP_ROUTER_ADDRESS_MATIC);
-        console.log({swapRouterContract})
-        let action = await swapRouterContract.methods.swap(aggregator, sourceToken, _sourceAmount, tradeData)
-        console.log(await action.estimateGas({ address })); return;
-
-
         let txn = await client.eth.sendTransaction({
             from: address,
             to: SWAP_ROUTER_ADDRESS_MATIC,
             data: tradeData,
             value: _sourceAmount,
-            // gas: 30000,   //   300000 GAS
-            gas: await action.estimateGas({ address }),
-            gasPrice: 10000000000  //  wei 5000000000
+            gas: 300000,   //   300000 GAS
+            gasPrice: 500000000000  //  wei
         })
+
         console.log({ txn })
-
-
-        const eventResult = await swapRouterContract.getPastEvents('Swap', {
-            fromBlock: 'latest',
-            toBlock: 'latest'
-        });
-        // console.log(JSON.stringify(eventResult[0]['args']))
-        console.log(JSON.stringify(eventResult[0]['returnValues']))
     }
 }
 
